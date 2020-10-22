@@ -51,6 +51,7 @@ export default {
     }
   },
   mounted () {
+    this.current = this.CurrentValue
     const m = this.$refs.media
     m.controls = false
     m.muted = true
@@ -70,6 +71,7 @@ export default {
     if (this.autoLoad) {
       this.canLoad = true
       this.load()
+      this.current = this.CurrentValue
     }
   },
   beforeDestroy () {
@@ -98,6 +100,7 @@ export default {
       this.$emit('volume', this.$refs.media.volume)
     },
     onLoadStart () {
+      this.$refs.media.currentTime = this.CurrentValue
       /**
        * Sent when loading of the media begins.
        */
@@ -145,6 +148,7 @@ export default {
        * because it has been paused for any other reason.
        */
       this.loading = false
+      this.$refs.audio.currentTime = this.current
     },
     onStalled () {
       /**
@@ -208,18 +212,22 @@ export default {
       this.current = this.$refs.media.currentTime
     },
     mute () {
-      this.$refs.media.muted = true
+      this.$refs.audio.muted = true
       this.muted = true
     },
     unmute () {
-      this.$refs.media.muted = false
+      this.$refs.audio.muted = false
       this.muted = false
     },
     play () {
+      this.$refs.audio.currentTime = this.current
+      console.log(this.$refs.audio)
       this.$refs.media.play()
+      this.$refs.audio.play()
     },
     pause () {
       this.$refs.media.pause()
+      this.$refs.audio.pause()
     },
     togglePlay () {
       if (this.ended) this.seek(0)
@@ -236,11 +244,19 @@ export default {
         this.mute()
       }
     },
+    setVolume (Volume) {
+      this.$refs.audio.volume = Volume
+    },
     seek (seconds) {
       this.$refs.media.currentTime = seconds
+      this.$refs.audio.currentTime = seconds
     },
     load () {
+      console.log(123)
+      this.$refs.media.currentTime = this.CurrentValue
+      this.$refs.audio.currentTime = this.CurrentValue
       this.$refs.media.load()
+      this.$refs.audio.load()
       this.resetFirstPlay()
     },
     unmuteAndTogglePlay () {

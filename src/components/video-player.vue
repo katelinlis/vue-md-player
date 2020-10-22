@@ -7,7 +7,8 @@
   )
     // Player
     div.player(@click.prevent="unmuteOrTogglePlay")
-      video(ref="media" :width="width" :height="height")
+      audio(ref="audio" :src="audiosrc")
+      video(ref="media" :src="src" :width="width" :height="height")
         slot(v-if="canLoad")
 
     // Pre-loader
@@ -30,6 +31,17 @@
           pause-icon(v-if="playing")
           replay-icon(v-else-if="ended")
           play-icon(v-else)
+        button.btn(@click="toggleMute()")
+          volume-off-icon(v-if="muted")
+          volume-up-icon(v-else)
+        slider2(
+          style="width: 50px"
+          v-model="volume"
+          :value="volume"
+          :min="0"
+          :max="1"
+          @input="setVolume(volume)"
+        )
 
         div.spacer
 
@@ -37,11 +49,8 @@
           span {{ currentTime }}
           span &nbsp;/&nbsp;
           span {{ durationTime }}
-
-        button.btn(@click="toggleMute()")
-          volume-off-icon(v-if="muted")
-          volume-up-icon(v-else)
-
+        button.btn(v-on:click="changeQuality")
+          span {{Quality}}
         button.btn(@click="toggleFullScreen()")
           fullscreen-exit-icon(v-if="fullscreen")
           fullscreen-icon(v-else)
@@ -57,6 +66,7 @@ import volumeOffIcon from '../assets/icons/volume-off.svg'
 import fullscreenIcon from '../assets/icons/fullscreen.svg'
 import fullscreenExitIcon from '../assets/icons/fullscreen-exit.svg'
 import scrubber from './scrubber.vue'
+import slider2 from './slider.vue'
 import preloader from './preloader.vue'
 import mediaMixin from '../mixin'
 import { secondsToTime } from '../helper'
@@ -65,6 +75,18 @@ import '../assets/style.styl'
 export default {
   mixins: [mediaMixin],
   props: {
+    CurrentValue: {
+      type: Number,
+      default: null
+    },
+    src: {
+      type: String,
+      default: null
+    },
+    audiosrc: {
+      type: String,
+      default: null
+    },
     width: {
       type: Number,
       default: null
@@ -87,10 +109,13 @@ export default {
     fullscreenIcon,
     fullscreenExitIcon,
     preloader,
-    scrubber
+    scrubber,
+    slider2
   },
   data () {
     return {
+      volume: 1,
+      Quality: 720,
       fullscreen: false,
       controlbar: false
     }
@@ -110,6 +135,17 @@ export default {
     }
   },
   methods: {
+    changeQuality () {
+      if (this.Quality === 720) {
+        this.Quality = 480
+      } else if (this.Quality === 480) this.Quality = 240
+      else if (this.Quality === 240) this.Quality = 720
+
+      // this.pause()
+      this.$store.dispatch('ChangeQuality', { quality: this.Quality, current: this.current }).then(() => {
+        this.play()
+      })
+    },
     onMouseHover () {
       this.controlbar = true
       window.clearTimeout(this.__controlbarTimeout)
